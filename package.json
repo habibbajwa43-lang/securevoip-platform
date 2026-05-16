@@ -1,0 +1,22 @@
+{
+  "name": "voip-platform-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": ["backend", "web-portal", "admin-panel", "marketing", "mobile"],
+  "scripts": {
+    "dev:backend": "cd backend && npm run start:dev",
+    "dev:web": "cd web-portal && npm run dev",
+    "dev:admin": "cd admin-panel && npm run dev",
+    "dev:marketing": "cd marketing && npm run dev",
+    "dev:mobile": "cd mobile && npm start",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:web\" \"npm run dev:admin\" \"npm run dev:marketing\"",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose build",
+    "seed": "cd backend && npm run seed",
+    "install:all": "npm install && cd backend && npm install && cd ../web-portal && npm install && cd ../admin-panel && npm install && cd ../marketing && npm install && cd ../mobile && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

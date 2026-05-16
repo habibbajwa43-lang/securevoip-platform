@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "VoIP Platform",
+    "slug": "voip-platform",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": { "backgroundColor": "#0F0F1A" },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.voipplatform.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "VoIP Platform needs microphone access for calls",
+        "NSCameraUsageDescription": "VoIP Platform needs camera for QR code login"
+      }
+    },
+    "android": {
+      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#0F0F1A" },
+      "package": "com.voipplatform.app",
+      "permissions": ["RECORD_AUDIO", "CAMERA", "VIBRATE", "RECEIVE_BOOT_COMPLETED"]
+    },
+    "plugins": [
+      ["expo-notifications", { "sounds": ["./assets/ringtone.wav"] }]
+    ]
+  }
+}

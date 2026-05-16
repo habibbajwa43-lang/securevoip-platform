@@ -1,0 +1,129 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 97%;
+    --foreground: 220 30% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 30% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 30% 8%;
+    --primary: 230 85% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 15% 94%;
+    --secondary-foreground: 220 25% 20%;
+    --muted: 220 15% 94%;
+    --muted-foreground: 220 10% 50%;
+    --accent: 220 15% 92%;
+    --accent-foreground: 220 25% 15%;
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 15% 88%;
+    --input: 220 15% 88%;
+    --ring: 230 85% 58%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222 25% 7%;
+    --foreground: 210 30% 94%;
+    --card: 222 22% 10%;
+    --card-foreground: 210 30% 94%;
+    --popover: 222 22% 10%;
+    --popover-foreground: 210 30% 94%;
+    --primary: 230 85% 62%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 20% 16%;
+    --secondary-foreground: 210 25% 80%;
+    --muted: 222 20% 14%;
+    --muted-foreground: 215 15% 55%;
+    --accent: 222 20% 18%;
+    --accent-foreground: 210 25% 85%;
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 18% 18%;
+    --input: 222 18% 18%;
+    --ring: 230 85% 62%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    letter-spacing: -0.01em;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+    letter-spacing: -0.025em;
+  }
+}
+@layer components {
+  .sidebar-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer;
+  }
+  .sidebar-item.active {
+    @apply bg-primary text-primary-foreground;
+    box-shadow: 0 4px 14px hsl(var(--primary) / 0.35);
+  }
+  .sidebar-item:not(.active) {
+    @apply text-muted-foreground hover:bg-accent hover:text-foreground;
+  }
+  .stat-card {
+    @apply bg-card rounded-2xl border p-5 shadow-sm transition-all duration-200 hover:shadow-md;
+  }
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(230 85% 58%) 0%, hsl(250 75% 62%) 100%);
+  }
+  .message-bubble-sent {
+    @apply px-4 py-2.5 rounded-2xl rounded-br-sm text-sm text-white;
+    background: linear-gradient(135deg, hsl(230 85% 58%) 0%, hsl(250 75% 62%) 100%);
+  }
+  .message-bubble-received {
+    @apply bg-secondary text-secondary-foreground px-4 py-2.5 rounded-2xl rounded-bl-sm text-sm;
+  }
+  .keypad-button {
+    @apply w-16 h-16 rounded-full bg-secondary hover:bg-accent flex flex-col items-center justify-center cursor-pointer transition-all duration-150 active:scale-90 select-none text-lg font-semibold;
+  }
+  .call-button {
+    @apply w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 active:scale-90;
+  }
+  .phone-display {
+    @apply text-3xl font-light tracking-widest text-center min-h-12;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .call-timer {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@keyframes ring-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.12); opacity: 0.8; }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ring-animation { animation: ring-pulse 0.85s ease-in-out infinite; }
+.animate-slide-up { animation: slide-up 0.3s ease-out; }
+.animate-fade-in { animation: fade-in 0.25s ease-out; }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { @apply bg-border rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-muted-foreground; }
+
+::selection { background: hsl(var(--primary) / 0.2); }
