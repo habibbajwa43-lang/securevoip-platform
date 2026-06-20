@@ -20,6 +20,12 @@ export default function BillingPage() {
 
   const presets = [10, 25, 50, 100];
 
+  // Safely turn any value (number, numeric string, null, undefined) into a fixed-decimal string
+  const money = (value: any, decimals = 2) => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n.toFixed(decimals) : (0).toFixed(decimals);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Billing & Wallet</h1>
@@ -29,8 +35,8 @@ export default function BillingPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-muted-foreground text-sm">Current Balance</p>
-            <p className="text-4xl font-bold mt-1">${wallet?.balance?.toFixed(2) || '0.00'}</p>
-            <p className="text-muted-foreground text-sm mt-1">${wallet?.recentTransactions?.[0]?.amount || '0.00'} last transaction</p>
+            <p className="text-4xl font-bold mt-1">${money(wallet?.balance)}</p>
+            <p className="text-muted-foreground text-sm mt-1">${money(wallet?.recentTransactions?.[0]?.amount)} last transaction</p>
           </div>
           <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center">
             <Wallet className="w-8 h-8 text-white" />
@@ -39,11 +45,11 @@ export default function BillingPage() {
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div className="bg-background/50 rounded-xl p-3">
             <p className="text-muted-foreground text-xs">This Month Spend</p>
-            <p className="font-bold text-lg">${wallet?.thisMonthSpend?.toFixed(2) || '0.00'}</p>
+            <p className="font-bold text-lg">${money(wallet?.thisMonthSpend)}</p>
           </div>
           <div className="bg-background/50 rounded-xl p-3">
             <p className="text-muted-foreground text-xs">Total Spend</p>
-            <p className="font-bold text-lg">${wallet?.totalSpend?.toFixed(2) || '0.00'}</p>
+            <p className="font-bold text-lg">${money(wallet?.totalSpend)}</p>
           </div>
         </div>
       </div>
@@ -106,7 +112,7 @@ export default function BillingPage() {
                 <p className="text-muted-foreground text-xs">{new Date(tx.createdAt).toLocaleDateString()}</p>
               </div>
               <span className={`font-semibold ${tx.type === 'credit' ? 'text-emerald-600' : 'text-red-600'}`}>
-                {tx.type === 'credit' ? '+' : '-'}${Math.abs(tx.amount).toFixed(4)}
+                {tx.type === 'credit' ? '+' : '-'}${money(Math.abs(Number(tx.amount) || 0), 4)}
               </span>
             </div>
           ))}
@@ -132,7 +138,7 @@ export default function BillingPage() {
               <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${inv.status === 'paid' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400'}`}>
                 {inv.status}
               </span>
-              <span className="font-semibold">${inv.amount?.toFixed(2)}</span>
+              <span className="font-semibold">${money(inv.amount)}</span>
             </div>
           ))}
         </div>
