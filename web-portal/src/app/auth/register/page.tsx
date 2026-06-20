@@ -19,7 +19,7 @@ export default function RegisterPage() {
     if (form.password !== form.confirmPassword) { setError('Passwords do not match'); return; }
     setLoading(true); setError('');
     try {
-      await api.post('/v1/auth/register', { firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password });
+      await api.post('/auth/register', { firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password });
       setSuccess(true);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
@@ -101,4 +101,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-
