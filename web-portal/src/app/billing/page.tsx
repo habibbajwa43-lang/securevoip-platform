@@ -1,7 +1,62 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { apiClient } from '@/lib/api';
-import { Wallet, TrendingUp, Receipt, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Wallet, TrendingUp, Receipt, ArrowUpRight, ArrowDownRight, X } from 'lucide-react';
+
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : null;
+
+function CheckoutForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+    setSubmitting(true);
+    setError('');
+    const { error: stripeError } = await stripe.confirmPayment({
+      elements,
+      redirect: 'if_required',
+    });
+    if (stripeError) {
+      setError(stripeError.message || 'Payment failed. Please try again.');
+      setSubmitting(false);
+    } else {
+      onSuccess();
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <PaymentElement />
+      {error && <p className="text-sm text-red-500">{error}</p>}
+      <div className="flex gap-2 pt-2">
+        <button
+          type="button"
+          onClick={onClose}
+          disabled={submitting}
+          className="flex-1 py-2.5 rounded-xl border text-sm font-medium hover:bg-accent transition-colors disabled:opacity-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={!stripe || submitting}
+          className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-50 transition-opacity"
+          style={{ background: 'linear-gradient(135deg, hsl(230 85% 58%) 0%, hsl(250 75% 62%) 100%)' }}
+        >
+          {submitting ? 'Processing...' : 'Pay now'}
+        </button>
+      </div>
+    </form>
+  );
+}
 
 export default function BillingPage() {
   const [wallet, setWallet] = useState<any>(null);
@@ -9,6 +64,11 @@ export default function BillingPage() {
   const [invoices, setInvoices] = useState([]);
   const [tab, setTab] = useState<'transactions' | 'invoices'>('transactions');
   const [amount, setAmount] = useState(25);
+
+  const [checkoutSecret, setCheckoutSecret] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   const fetchData = () => {
     apiClient.get('/billing/wallet').then(r => setWallet(r.data.data || r.data)).catch(() => {});
@@ -26,9 +86,41 @@ export default function BillingPage() {
     return Number.isFinite(n) ? n.toFixed(decimals) : (0).toFixed(decimals);
   };
 
+  const handleTopUp = async () => {
+    setCheckoutError('');
+    if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+      setCheckoutError('Stripe is not configured yet (missing publishable key).');
+      return;
+    }
+    setCheckoutLoading(true);
+    try {
+      const res = await apiClient.post('/billing/payment-intent', { amount });
+      const secret = res.data?.data?.clientSecret || res.data?.clientSecret;
+      if (!secret) throw new Error('No client secret returned');
+      setCheckoutSecret(secret);
+    } catch (err: any) {
+      setCheckoutError(err.response?.data?.message || 'Could not start checkout. Please try again.');
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
+  const handleCheckoutSuccess = () => {
+    setCheckoutSecret(null);
+    setSuccessMsg(`Payment received — your wallet will update shortly.`);
+    fetchData();
+    setTimeout(() => setSuccessMsg(''), 5000);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Billing & Wallet</h1>
+
+      {successMsg && (
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-sm px-4 py-3">
+          {successMsg}
+        </div>
+      )}
 
       {/* Balance Card */}
       <div className="bg-card rounded-2xl border p-6 shadow-sm" style={{background: 'linear-gradient(135deg, hsl(230 85% 58% / 0.1) 0%, hsl(250 75% 62% / 0.1) 100%)'}}>
@@ -73,13 +165,16 @@ export default function BillingPage() {
             <input type="number" value={amount} onChange={e => setAmount(Number(e.target.value))} min={5} max={500}
               className="w-full border rounded-xl px-4 py-2.5 bg-background focus:outline-none focus:ring-2 focus:ring-primary text-sm" />
           </div>
+          {checkoutError && <p className="text-xs text-red-500">{checkoutError}</p>}
           <button
-            className="w-full py-3 rounded-xl font-semibold text-white transition-all"
+            className="w-full py-3 rounded-xl font-semibold text-white transition-all disabled:opacity-50"
             style={{background: 'linear-gradient(135deg, hsl(230 85% 58%) 0%, hsl(250 75% 62%) 100%)'}}
-            onClick={() => alert('Add Stripe keys to enable payments')}>
-            Top Up ${amount}
+            onClick={handleTopUp}
+            disabled={checkoutLoading || amount < 5}
+          >
+            {checkoutLoading ? 'Loading...' : `Top Up $${amount}`}
           </button>
-          <p className="text-xs text-muted-foreground text-center">Secured by Stripe — Add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to enable</p>
+          <p className="text-xs text-muted-foreground text-center">Secured by Stripe</p>
         </div>
       </div>
 
@@ -141,6 +236,23 @@ export default function BillingPage() {
               <span className="font-semibold">${money(inv.amount)}</span>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Checkout Modal */}
+      {checkoutSecret && stripePromise && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl border p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold">Add ${amount} to your wallet</h3>
+              <button onClick={() => setCheckoutSecret(null)} className="text-muted-foreground hover:text-foreground">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <Elements stripe={stripePromise} options={{ clientSecret: checkoutSecret, appearance: { theme: 'night' } }}>
+              <CheckoutForm onClose={() => setCheckoutSecret(null)} onSuccess={handleCheckoutSuccess} />
+            </Elements>
+          </div>
         </div>
       )}
     </div>
